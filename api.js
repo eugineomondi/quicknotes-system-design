@@ -106,7 +106,32 @@ async function createNote(title, body) {
     submitBtn.disabled = false;
   }
 }
+// ---------- DELETE ----------
+// NOTE: JSONPlaceholder does not actually persist created notes — any
+// POST returns a fake object with id 101, and DELETE always succeeds
+// against the fake store. So after DELETE we remove the note from the
+// local array ourselves; a real API would already have removed it and
+// the next GET would confirm it.
+async function deleteNote(id, button) {
+  button.disabled = true;
+  setStatus("Deleting note...");
 
+  try {
+    await request(`${API_URL}/${id}`, { method: "DELETE" });
+    notes = notes.filter((n) => n.id !== id);
+    renderNotes();
+    setStatus(`Note ${id} deleted.`, "success");
+  } catch (error) {
+    setStatus(`Could not delete note: ${error.message}`, "error");
+    button.disabled = false;
+  }
+}
+
+notesList.addEventListener("click", (event) => {
+  const btn = event.target.closest(".delete-btn");
+  if (!btn) return;
+  deleteNote(Number(btn.dataset.id), btn);
+});
 // ---------- Form submit ----------
 form.addEventListener("submit", (event) => {
   event.preventDefault();
