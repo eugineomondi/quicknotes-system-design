@@ -84,4 +84,45 @@ async function loadNotes() {
 loadBtn.addEventListener("click", loadNotes);
 
 // Boot
+// ---------- POST ----------
+async function createNote(title, body) {
+  submitBtn.disabled = true;
+  setStatus("Creating note...");
+
+  try {
+    const created = await request(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, body, userId: 1 }),
+    });
+
+    notes.unshift(created);
+    renderNotes();
+    setStatus(`Note created (status 201, id ${created.id}).`, "success");
+    form.reset();
+  } catch (error) {
+    setStatus(`Could not create note: ${error.message}`, "error");
+  } finally {
+    submitBtn.disabled = false;
+  }
+}
+
+// ---------- Form submit ----------
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const title = titleInput.value.trim();
+  const body = bodyInput.value.trim();
+
+  if (!title) {
+    setStatus("Please enter a title.", "error");
+    return;
+  }
+  if (title.length > 100) {
+    setStatus("Title must be 100 characters or fewer.", "error");
+    return;
+  }
+
+  createNote(title, body);
+});
 renderNotes();
